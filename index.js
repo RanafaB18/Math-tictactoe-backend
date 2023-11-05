@@ -68,6 +68,7 @@ io.on('connection', (socket) => {
         if (playerSockets[room].length === 2) {
             io.to(room).emit('ready')
         }
+        console.log("Player socket", playerSockets)
 
         if (!gamesFinished[room]) {
             gamesFinished[room] = false
