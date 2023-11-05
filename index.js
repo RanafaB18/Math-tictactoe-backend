@@ -7,10 +7,12 @@ const server = createServer(app);
 const io = new Server(server, {
     cors: {
         // origin: "http://localhost:5173"
-        origin: "https://math-tictactoe.vercel.app"
+        origin: "https://math-tictactoe.vercel.app/"
     }
 })
-app.use(cors())
+app.use(express.json())
+
+app.use(cors({ origin: "https://math-tictactoe.vercel.app/"}))
 const playerOne = [
     { id: 1, number: 1 },
     { id: 2, number: 3 },
