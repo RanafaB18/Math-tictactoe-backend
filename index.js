@@ -13,7 +13,7 @@ const io = new Server(server, {
 })
 app.use(express.json())
 
-app.use(cors())
+app.use(cors({origin: "https://math-tictactoe.vercel.app"}))
 const playerOne = [
     { id: 1, number: 1 },
     { id: 2, number: 3 },
