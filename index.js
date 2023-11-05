@@ -48,6 +48,8 @@ io.on('connection', (socket) => {
             socket.emit('filled-game')
             return
         }
+
+
         // This helps to identify player1 from player2
         // in order to share different cards to each
         if (playersInGames[room]) {
@@ -56,17 +58,19 @@ io.on('connection', (socket) => {
             playersInGames[room] = 1
         }
 
-        const id = uuid()
         if (playerSockets[room]) {
             playerSockets[room].push(socket)
         } else {
             playerSockets[room] = [socket]
         }
 
+        if (playerSockets[room].length === 2) {
+            io.to(room).emit('ready')
+        }
+
         if (!gamesFinished[room]) {
             gamesFinished[room] = false
         }
-        console.log("Players sockets", playerSockets);
         socket.emit('send-id', socket.id)
         // If player1 plays before player2 joins the game,
         // player2 will still see the played card
@@ -76,24 +80,22 @@ io.on('connection', (socket) => {
 
 
         const playerCount = playersInGames[room]
-        console.log("Player", players[`player${playerCount}`], playersInGames);
         socket.emit('share-cards', players[`player${playerCount}`])
         const firstPlayer = playerSockets[room][0]
         firstPlayer.broadcast.emit('disable')
         socket.on('played', (playerId) => {
-            console.log("I have played", playerId)
             const current = playerSockets[room].find(socket => socket.id === playerId)
             current.emit('disable')
             const next = playerSockets[room].filter(socket => socket.id !== playerId)[0]
             next.emit('enable')
-            console.log("Next to play", next);
-
         })
         socket.on('update-grid', (newGrid) => {
             persistentGrids[room] = newGrid
             io.to(room).emit('update-all-players', newGrid)
-            // console.log("Persistent Grid", persistentGrids);
-            console.log("Update grid");
+            if (checkIfGameIsOver(newGrid)) {
+                socket.broadcast.emit('lost')
+                socket.emit('won')
+            }
         })
 
         socket.on('reduce-count', () => {
@@ -101,12 +103,9 @@ io.on('connection', (socket) => {
         })
         socket.on('disconnect', (reason) => {
             playersInGames[room]--
-            console.log("Reason ", reason);
-            console.log("Left ", room, playerCount);
             playerSockets[room] = playerSockets[room].filter(playerSocket => playerSocket.id !== socket.id)
             socket.leave(room)
             if (playerSockets[room].length === 1) {
-                console.log("Left", playerSockets[room]);
                 const winnerByForfeit = playerSockets[room][0]
                 winnerByForfeit.emit("winner")
             }
@@ -115,7 +114,41 @@ io.on('connection', (socket) => {
     })
 })
 
+function checkIfGameIsOver(grid) {
+    // Verticals
+    if ((Number(grid[0].number) + Number(grid[3].number) + Number(grid[6].number)) === 15) {
+        return true
+    }
+    if ((Number(grid[1].number) + Number(grid[4].number) + Number(grid[7].number)) === 15) {
+        return true
+    }
+    if ((Number(grid[2].number) + Number(grid[5].number) + Number(grid[8].number)) === 15) {
+        return true
+    }
 
+    // Horizontals
+    if ((Number(grid[0].number) + Number(grid[1].number) + Number(grid[2].number)) === 15) {
+        return true
+    }
+    if ((Number(grid[3].number) + Number(grid[4].number) + Number(grid[5].number)) === 15) {
+        return true
+    }
+    if ((Number(grid[6].number) + Number(grid[7].number) + Number(grid[8].number)) === 15) {
+        return true
+    }
+
+    //Diagonals
+
+    if ((Number(grid[0].number) + Number(grid[4].number) + Number(grid[8].number)) === 15) {
+        return true
+    }
+
+    if ((Number(grid[2].number) + Number(grid[4].number) + Number(grid[6].number)) === 15) {
+        return true
+    }
+
+
+  }
 server.listen(3000, () => {
     console.log(`Server is running at http://localhost:3000`)
 })
