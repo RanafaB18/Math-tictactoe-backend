@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express')
 const { createServer } = require('node:http')
 const { Server } = require('socket.io')
@@ -152,6 +153,7 @@ function checkIfGameIsOver(grid) {
 
 
   }
-server.listen(3000, () => {
+const PORT = process.env.PORT || 3004
+  server.listen(PORT, () => {
     console.log(`Server is running`)
 })
