@@ -7,7 +7,7 @@ const server = createServer(app);
 const io = new Server(server, {
     cors: {
         // origin: "http://localhost:5173"
-        origin: "*"
+        origin: "https://math-tictactoe.vercel.app/"
     }
 })
 app.use(express.json())
