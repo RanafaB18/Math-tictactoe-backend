@@ -1,7 +1,7 @@
 const express = require('express')
 const { createServer } = require('node:http')
 const { Server } = require('socket.io')
-const { v4: uuid } = require('uuid')
+const cors = require('cors')
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
@@ -10,6 +10,7 @@ const io = new Server(server, {
         origin: "https://math-tictactoe.vercel.app/"
     }
 })
+app.use(cors())
 const playerOne = [
     { id: 1, number: 1 },
     { id: 2, number: 3 },
@@ -35,8 +36,6 @@ let persistentGrids = {}
 let playerSockets = {}
 
 let gamesFinished = {}
-
-let whoIsPlaying = {}
 
 io.on('connection', (socket) => {
     console.log("a user connected")
